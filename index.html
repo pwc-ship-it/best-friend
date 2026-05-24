@@ -81,10 +81,10 @@
   .comment-name { font-weight: 600; color: var(--moss); white-space: nowrap; font-size: 0.8rem; background: var(--warm); padding: 0.2rem 0.5rem; border-radius: 6px; }
   .comment-text { color: var(--ink); line-height: 1.4; padding-top: 0.2rem; }
   .comment-input-row { display: flex; gap: 0.4rem; margin-top: 0.8rem; }
-  .comment-input-name { width: 25%; min-width: 52px; padding: 0.6rem 0.4rem; border: 1.5px solid var(--sand); border-radius: 8px; font-size: 0.85rem; font-family: inherit; outline:none; }
-  .comment-input-text { flex: 1; padding: 0.6rem; border: 1.5px solid var(--sand); border-radius: 8px; font-size: 0.85rem; font-family: inherit; outline:none; }
+  .comment-input-name { width: 25%; min-width: 52px; flex-shrink: 0; padding: 0.6rem 0.4rem; border: 1.5px solid var(--sand); border-radius: 8px; font-size: 0.85rem; font-family: inherit; outline:none; }
+  .comment-input-text { flex: 1; min-width: 0; padding: 0.6rem; border: 1.5px solid var(--sand); border-radius: 8px; font-size: 0.85rem; font-family: inherit; outline:none; }
   .comment-input-name:focus, .comment-input-text:focus { border-color: var(--bark); }
-  .comment-btn { padding: 0 0.8rem; background: var(--moss); color: white; border: none; border-radius: 8px; font-size: 0.85rem; cursor: pointer; font-family: inherit;}
+  .comment-btn { padding: 0 0.8rem; height: 38px; min-width: 44px; flex-shrink: 0; background: var(--moss); color: white; border: none; border-radius: 8px; font-size: 0.85rem; cursor: pointer; font-family: inherit;}
 
   /* 회비 탭 카드 */
   .fee-detail-card { background: white; border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
@@ -173,10 +173,10 @@
   <div class="login-card">
     <span class="login-emoji">🍃</span>
     <div class="login-title">우리들의 아지트</div>
-    <div class="login-sub">소중한 우리만의 공간!!<br>비밀번호 입력해줘!</div>
+    <div class="login-sub">소중한 우리만의 공간이에요<br>비밀번호를 입력해주세요</div>
     <input type="password" class="login-input" id="pwInput" placeholder="• • • • •" onkeydown="if(event.key==='Enter') tryLogin()">
     <button class="login-btn" id="loginBtn" onclick="tryLogin()">데이터 연결 중...</button>
-    <div class="login-error" id="loginError">비밀번호가 틀렸음 🥲</div>
+    <div class="login-error" id="loginError">비밀번호가 틀렸어요 🥲</div>
   </div>
 </div>
 
@@ -189,7 +189,7 @@
   <header class="site-header">
     <div class="site-title">
       <button class="guide-btn" onclick="document.getElementById('guideModal').style.display='flex'" title="사용 가이드">❓</button>
-      🌿 <span id="displayGroupName">절친들의 수다</span>
+      🌿 <span id="displayGroupName">우리들의 아지트</span>
       <button class="drive-btn" onclick="goDrive()" title="드라이브 이동">☁️</button>
     </div>
     <div class="site-members" id="displayMembers">멤버: -</div>
@@ -227,7 +227,7 @@
       <div class="settings-title">모임 정보 확인</div>
       <div class="settings-row" style="display:flex; justify-content:space-between; font-size:0.9rem;">
         <span style="color:var(--dusk)">모임 이름</span>
-        <span id="info-name" style="font-weight:600;">절친들의 수다</span>
+        <span id="info-name" style="font-weight:600;">우리들의 아지트</span>
       </div>
       <div class="settings-row" style="display:flex; justify-content:space-between; font-size:0.9rem;">
         <span style="color:var(--dusk)">구성원</span>
@@ -386,7 +386,7 @@ let gallerySize = 'lg';
 let isDataLoaded = false;
 
 // 초기 설정값 로드
-let defaultSettings = { name: '절친들의 수다', members: '', drive: '', password: '1234' };
+let defaultSettings = { name: '우리들의 아지트', members: '', drive: '', password: '1234' };
 let settings = JSON.parse(localStorage.getItem('gathering_settings_v5')) || defaultSettings;
 
 // 페이지가 켜지자마자 서버에서 설정값(데이터)을 백그라운드로 가져옵니다.
@@ -538,7 +538,10 @@ function renderMemories() {
   list.innerHTML = '';
   
   // 설정 데이터(settings)와 입금 데이터(deposit)는 카드에서 제외
-  globalData.filter(d => d.type !== 'deposit' && d.type !== 'settings').forEach(item => {
+  const sortedData = globalData
+    .filter(d => d.type !== 'deposit' && d.type !== 'settings')
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+  sortedData.forEach(item => {
     const isDaily = item.type === 'daily';
     const mainPhotoHtml = item.mainPhoto ? `<img src="${convertDriveUrl(item.mainPhoto)}" class="main-photo" onerror="this.style.display='none'">` : '';
     let totalExp = 0;
@@ -693,7 +696,9 @@ async function renderGallery() {
   let hasContent = false;
   let sectionsHtml = '';
 
-  const items = globalData.filter(d => d.type !== 'deposit' && d.type !== 'settings');
+  const items = globalData
+    .filter(d => d.type !== 'deposit' && d.type !== 'settings')
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
 
   for (const item of items) {
     let photos = [];
@@ -1089,9 +1094,9 @@ function shareKakao(title, imgUrl) {
 }
 
 function applySettingsToUI() {
-  document.getElementById('displayGroupName').innerText = settings.name || '속닥속닥';
+  document.getElementById('displayGroupName').innerText = settings.name || '우리들의 아지트';
   document.getElementById('displayMembers').innerText = settings.members ? `멤버: ${settings.members}` : '멤버: -';
-  document.getElementById('info-name').innerText = settings.name || '속닥속닥';
+  document.getElementById('info-name').innerText = settings.name || '우리들의 아지트';
   document.getElementById('info-members').innerText = settings.members || '-';
   document.getElementById('set-name').value = settings.name; document.getElementById('set-members').value = settings.members; document.getElementById('set-drive').value = settings.drive;
 }
