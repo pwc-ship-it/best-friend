@@ -89,8 +89,11 @@
   .gallery-grid.size-lg { grid-template-columns: repeat(2, 1fr); }
   .gallery-grid.size-md { grid-template-columns: repeat(3, 1fr); }
   .gallery-grid.size-sm { grid-template-columns: repeat(4, 1fr); }
-  .gallery-item { aspect-ratio: 1; overflow: hidden; border-radius: 8px; background: var(--warm); cursor: pointer; position: relative; }
-  .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+  .gallery-item { aspect-ratio: 1; overflow: hidden; border-radius: 8px; background: var(--warm); cursor: pointer; position: relative; user-select: none; }
+  .gallery-item img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+  .gallery-item.delete-mode { outline: 3px solid #e74c3c; }
+  .gallery-delete-overlay { position: absolute; inset: 0; background: rgba(231,76,60,0.55); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+  .gallery-item.delete-mode .gallery-delete-overlay { opacity: 1; }
   .folder-btn { display: block; width: 100%; padding: 0.8rem; background: var(--sand); color: var(--ink); font-family: 'Gowun Dodum', sans-serif; font-size: 0.85rem; border: none; border-radius: 12px; margin-top: 0.8rem; cursor: pointer; text-align: left; }
   .folder-btn::before { content: "📁 "; }
   
@@ -608,12 +611,17 @@ async function fetchFolderPhotos(folderId) {
     const query = encodeURIComponent(`'${folderId}' in parents and mimeType contains 'image/' and trashed = false`);
     const url = `https://www.googleapis.com/drive/v3/files?q=${query}&key=${DRIVE_API_KEY}&fields=files(id,name)&pageSize=100`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error('API 오류');
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      const reason = (errData && errData.error && errData.error.message) || ('HTTP ' + res.status);
+      console.error('Drive API 오류 상세:', res.status, reason, JSON.stringify(errData));
+      return { error: res.status + ': ' + reason };
+    }
     const data = await res.json();
-    return (data.files || []).map(f => `https://drive.google.com/thumbnail?id=${f.id}&sz=w800`);
+    return { photos: (data.files || []).map(f => `https://drive.google.com/thumbnail?id=${f.id}&sz=w800`) };
   } catch(e) {
     console.error('폴더 사진 로드 실패:', e);
-    return [];
+    return { error: e.message };
   }
 }
 
@@ -629,12 +637,12 @@ async function renderGallery() {
   for (const item of items) {
     let photos = [];
     let folderUrls = [];
+    let hasFolderLinks = false;
 
-    if (item.mainPhoto) photos.push(item.mainPhoto);
     if (item.galleryLinks) {
       const links = item.galleryLinks.split(',').map(s => s.trim()).filter(s => s !== '');
       links.forEach(l => {
-        if (l.includes('folders/')) folderUrls.push(l);
+        if (l.includes('folders/')) { folderUrls.push(l); hasFolderLinks = true; }
         else photos.push(l);
       });
     }
@@ -643,10 +651,24 @@ async function renderGallery() {
     for (const fUrl of folderUrls) {
       const folderId = extractFolderId(fUrl);
       if (folderId) {
-        const folderPhotos = await fetchFolderPhotos(folderId);
-        photos = photos.concat(folderPhotos);
+        const result = await fetchFolderPhotos(folderId);
+        if (result.error) {
+          console.warn('폴더 로드 실패 (folderId: ' + folderId + '):', result.error);
+        } else {
+          photos = photos.concat(result.photos);
+        }
       }
     }
+
+    // 메인 사진 처리:
+    // - 폴더 사진이 있으면 메인 사진은 이미 폴더 안에 포함되어 있을 수 있으므로 갤러리에서 제외
+    // - 폴더가 없으면 메인 사진도 갤러리에 표시
+    if (item.mainPhoto && !hasFolderLinks) {
+      photos.unshift(item.mainPhoto); // 맨 앞에 추가
+    }
+
+    // 중복 URL 제거 (혹시 galleryLinks에 메인 사진과 같은 URL이 있을 경우 대비)
+    photos = [...new Set(photos)];
 
     if (photos.length > 0) {
       hasContent = true;
@@ -657,9 +679,20 @@ async function renderGallery() {
         // 이미 thumbnail URL이면 그대로, 아니면 변환
         const displayUrl = url.includes('thumbnail?id=') ? url : convertDriveUrl(url);
         // 원본 URL은 openPhotoModal용으로 data 속성에 저장
+        // URL을 data 속성으로 안전하게 저장 (따옴표 이슈 방지)
+        const safeUrl = url.replace(/'/g, '%27');
         html += `
-          <div class="gallery-item" onclick="openPhotoModal('${item.id}', '${url}')">
+          <div class="gallery-item"
+            data-gid="${item.id}"
+            data-url="${safeUrl}"
+            data-mainphoto="${item.mainPhoto === url ? '1' : '0'}"
+            onclick="handleGalleryClick(event, this)"
+            oncontextmenu="startDeleteMode(event, this)"
+            ontouchstart="onGalleryTouchStart(event, this)"
+            ontouchend="onGalleryTouchEnd(event, this)"
+            ontouchmove="onGalleryTouchMove(event)">
             <img src="${displayUrl}" onerror="this.parentElement.style.display='none'">
+            <div class="gallery-delete-overlay">🗑️</div>
           </div>
         `;
       });
@@ -669,6 +702,68 @@ async function renderGallery() {
   }
 
   content.innerHTML = hasContent ? sectionsHtml : `<div style="text-align:center; padding: 3rem 1rem; color:var(--fog);">아직 사진이 없어요 📷</div>`;
+}
+// 📸 갤러리 삭제 관련
+let _longPressTimer = null;
+let _longPressMoved = false;
+let _deleteTargetEl = null;
+
+function onGalleryTouchStart(e, el) {
+  _longPressMoved = false;
+  _longPressTimer = setTimeout(() => {
+    if (!_longPressMoved) startDeleteMode(e, el);
+  }, 600);
+}
+function onGalleryTouchEnd(e, el) {
+  clearTimeout(_longPressTimer);
+}
+function onGalleryTouchMove(e) {
+  _longPressMoved = true;
+  clearTimeout(_longPressTimer);
+}
+
+function startDeleteMode(e, el) {
+  e.preventDefault();
+  // 기존 삭제모드 해제
+  document.querySelectorAll('.gallery-item.delete-mode').forEach(i => i.classList.remove('delete-mode'));
+  el.classList.add('delete-mode');
+  _deleteTargetEl = el;
+
+  const url = decodeURIComponent(el.dataset.url);
+  const isMain = el.dataset.mainphoto === '1';
+  const msg = isMain ? '이 사진은 모임의 메인 사진이에요.\n갤러리에서만 제거할까요?' : '이 사진을 갤러리에서 삭제할까요?';
+  if (confirm(msg)) {
+    deleteGalleryPhoto(el.dataset.gid, url, isMain === true || el.dataset.mainphoto === '1');
+  } else {
+    el.classList.remove('delete-mode');
+  }
+}
+
+function handleGalleryClick(e, el) {
+  // 삭제 모드 중인 항목 클릭 시 모달 안 열림
+  if (el.classList.contains('delete-mode')) {
+    el.classList.remove('delete-mode');
+    return;
+  }
+  const url = decodeURIComponent(el.dataset.url);
+  openPhotoModal(el.dataset.gid, url);
+}
+
+async function deleteGalleryPhoto(gid, url, isMain) {
+  const item = globalData.find(d => d.id == gid);
+  if (!item) return;
+
+  if (isMain) {
+    item.mainPhoto = '';
+  }
+
+  // galleryLinks에서 해당 URL 제거
+  if (item.galleryLinks) {
+    const links = item.galleryLinks.split(',').map(s => s.trim()).filter(s => s !== '' && s !== url);
+    item.galleryLinks = links.join(', ');
+  }
+
+  await saveData(item);
 }
 
 // 📸 갤러리 개별 사진 모달 열기 & 댓글 렌더링
