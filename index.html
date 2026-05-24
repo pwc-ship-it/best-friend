@@ -172,11 +172,11 @@
 <div id="loginScreen">
   <div class="login-card">
     <span class="login-emoji">🍃</span>
-    <div class="login-title">절친들의 수다</div>
-    <div class="login-sub">소중한 우리만의 공간이에요<br>비밀번호를 입력해주세요</div>
+    <div class="login-title">우리들의 아지트</div>
+    <div class="login-sub">소중한 우리만의 공간!!<br>비밀번호 입력해줘!</div>
     <input type="password" class="login-input" id="pwInput" placeholder="• • • • •" onkeydown="if(event.key==='Enter') tryLogin()">
     <button class="login-btn" id="loginBtn" onclick="tryLogin()">데이터 연결 중...</button>
-    <div class="login-error" id="loginError">비밀번호가 틀렸어요 🥲</div>
+    <div class="login-error" id="loginError">비밀번호가 틀렸음 🥲</div>
   </div>
 </div>
 
@@ -468,8 +468,40 @@ async function refetchData() {
       settings = { ...settings, ...serverSettings.data };
       localStorage.setItem('gathering_settings_v5', JSON.stringify(settings));
     }
+    migratePhotoCommentKeys();
     renderAll();
   } catch (e) { alert("데이터를 다시 불러오는데 실패했어요."); }
+}
+
+// 기존에 URL 전체를 key로 저장된 photoComments를 파일ID key로 마이그레이션
+function migratePhotoCommentKeys() {
+  let needSave = [];
+  globalData.forEach(item => {
+    if (!item.photoComments) return;
+    const oldKeys = Object.keys(item.photoComments);
+    let changed = false;
+    oldKeys.forEach(k => {
+      const newKey = photoCommentKey(k);
+      if (newKey !== k) {
+        if (!item.photoComments[newKey]) {
+          item.photoComments[newKey] = item.photoComments[k];
+        } else {
+          // 기존 key 데이터 병합
+          item.photoComments[newKey] = item.photoComments[newKey].concat(item.photoComments[k]);
+        }
+        delete item.photoComments[k];
+        changed = true;
+      }
+    });
+    if (changed) needSave.push(item);
+  });
+  // 변환된 항목은 백그라운드로 재저장
+  needSave.forEach(item => {
+    fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'save', record: { id: item.id, json: JSON.stringify(item) } })
+    }).catch(() => {});
+  });
 }
 
 async function saveData(record) {
@@ -727,7 +759,7 @@ async function renderGallery() {
             ontouchmove="onGalleryTouchMove(event)">
             <img src="${displayUrl}" onerror="this.parentElement.style.display='none'">
             <div class="gallery-delete-overlay">🗑️</div>
-            ${(item.photoComments && item.photoComments[url] && item.photoComments[url].length > 0) ? '<div class="comment-badge">💬 ' + item.photoComments[url].length + '</div>' : ''}
+            ${(() => { const k = photoCommentKey(url); return (item.photoComments && item.photoComments[k] && item.photoComments[k].length > 0) ? '<div class="comment-badge">💬 ' + item.photoComments[k].length + '</div>' : ''; })()}
           </div>
         `;
       });
@@ -801,16 +833,30 @@ async function deleteGalleryPhoto(gid, url, isMain) {
   await saveData(item);
 }
 
+
+// URL → 댓글 저장 key 변환 (Drive 파일ID 또는 URL 해시로 단축)
+function photoCommentKey(url) {
+  // thumbnail?id=FILEID 형태면 파일ID만
+  const m = url.match(/[?&]id=([^&]+)/);
+  if (m) return m[1];
+  // drive.google.com/file/d/FILEID 형태
+  const m2 = url.match(/\/d\/([^/\?]+)/);
+  if (m2) return m2[1];
+  // 그 외: URL 전체 (기존 동작 유지)
+  return url;
+}
+
 // 📸 갤러리 개별 사진 모달 열기 & 댓글 렌더링
 function openPhotoModal(gid, url) {
   const item = globalData.find(d => d.id == gid);
   if(!item) return;
   
+  const key = photoCommentKey(url);
   document.getElementById('pv-img').src = convertDriveUrl(url); 
   document.getElementById('pv-gid').value = gid;
-  document.getElementById('pv-url').value = url;
+  document.getElementById('pv-url').value = key;  // key로 저장
   
-  renderPhotoComments(gid, url);
+  renderPhotoComments(gid, key);
   document.getElementById('photoViewModal').style.display = 'flex';
 }
 
@@ -855,9 +901,13 @@ async function addPhotoComment() {
   updateCommentBadge(gid, url, item.photoComments[url].length);
 }
 
-function updateCommentBadge(gid, url, count) {
-  const safeUrl = url.replace(/'/g, '%27');
-  const el = document.querySelector(`.gallery-item[data-gid="${gid}"][data-url="${safeUrl}"]`);
+function updateCommentBadge(gid, urlOrKey, count) {
+  // data-url은 원본 URL이 인코딩된 형태이므로 모든 해당 gid 항목에서 key 매칭
+  const key = photoCommentKey(decodeURIComponent(urlOrKey));
+  let el = null;
+  document.querySelectorAll(`.gallery-item[data-gid="${gid}"]`).forEach(item => {
+    if (photoCommentKey(decodeURIComponent(item.dataset.url)) === key) el = item;
+  });
   if (!el) return;
   let badge = el.querySelector('.comment-badge');
   if (count > 0) {
@@ -1039,9 +1089,9 @@ function shareKakao(title, imgUrl) {
 }
 
 function applySettingsToUI() {
-  document.getElementById('displayGroupName').innerText = settings.name || '절친들의 수다';
+  document.getElementById('displayGroupName').innerText = settings.name || '속닥속닥';
   document.getElementById('displayMembers').innerText = settings.members ? `멤버: ${settings.members}` : '멤버: -';
-  document.getElementById('info-name').innerText = settings.name || '절친들의 수다';
+  document.getElementById('info-name').innerText = settings.name || '속닥속닥';
   document.getElementById('info-members').innerText = settings.members || '-';
   document.getElementById('set-name').value = settings.name; document.getElementById('set-members').value = settings.members; document.getElementById('set-drive').value = settings.drive;
 }
