@@ -2,1444 +2,408 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>우리들의 모임 🌿</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCmbV0X0x/A5x31k11sX5tDnt2k1wFw/0Rrn5t/pVQ0/M/uE3oR0O5U5y08dD7b" crossorigin="anonymous"></script>
+
 <style>
   :root {
-    --cream: #faf6f0;
-    --warm: #f2ebe0;
-    --sand: #e8ddd0;
-    --bark: #b8956a;
-    --moss: #7a9e7e;
-    --dusk: #8f7b6e;
-    --ink: #3d2f28;
-    --fog: #c9bdb5;
-    --blush: #e8c4a0;
-    --leaf: #a8c5a0;
+    --cream: #faf6f0; --warm: #f2ebe0; --sand: #e8ddd0; --bark: #b8956a;
+    --moss: #7a9e7e; --dusk: #8f7b6e; --ink: #3d2f28; --fog: #c9bdb5;
   }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { background-color: var(--cream); font-family: 'Gowun Dodum', sans-serif; color: var(--ink); min-height: 100vh; padding-bottom: 80px; }
+  
+  /* 로딩 화면 */
+  #loading { position: fixed; inset: 0; background: rgba(250,246,240,0.8); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--bark); font-family: 'Noto Serif KR', serif; display: none; }
+  .spinner { width: 40px; height: 40px; border: 3px solid var(--sand); border-top-color: var(--moss); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* 상단 헤더 */
+  .site-header { padding: 2rem 1.5rem 1.5rem; text-align: center; background: var(--cream); position: sticky; top: 0; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+  .site-title { font-family: 'Noto Serif KR', serif; font-size: 1.6rem; font-weight: 600; color: var(--ink); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+  .drive-btn { background: var(--warm); border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .top-actions { display: flex; justify-content: space-between; padding: 0 1.5rem; margin-bottom: 1rem; }
+  .action-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 0.85rem; color: var(--dusk); background: none; border: 1px solid var(--sand); padding: 0.4rem 0.8rem; border-radius: 50px; cursor: pointer; }
 
-  body {
-    background-color: var(--cream);
-    font-family: 'Gowun Dodum', sans-serif;
-    color: var(--ink);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* ───── 배경 텍스처 ───── */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      radial-gradient(ellipse at 20% 10%, rgba(184,149,106,0.08) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 80%, rgba(122,158,126,0.07) 0%, transparent 60%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* ───── 로그인 화면 ───── */
-  #loginScreen {
-    position: fixed; inset: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--cream);
-  }
-
-  .login-card {
-    text-align: center;
-    padding: 3rem 2rem;
-    max-width: 340px;
-    width: 90%;
-  }
-
-  .login-emoji { font-size: 3.5rem; margin-bottom: 1.2rem; display: block; }
-
-  .login-title {
-    font-family: 'Noto Serif KR', serif;
-    font-size: 1.6rem;
-    font-weight: 600;
-    color: var(--ink);
-    margin-bottom: 0.4rem;
-  }
-
-  .login-sub {
-    color: var(--dusk);
-    font-size: 0.9rem;
-    margin-bottom: 2rem;
-    line-height: 1.6;
-  }
-
-  .login-input {
-    width: 100%;
-    padding: 0.9rem 1.2rem;
-    border: 2px solid var(--sand);
-    border-radius: 50px;
-    background: white;
-    font-family: 'Gowun Dodum', sans-serif;
-    font-size: 1rem;
-    color: var(--ink);
-    text-align: center;
-    letter-spacing: 0.2em;
-    outline: none;
-    transition: border-color 0.2s;
-    margin-bottom: 1rem;
-  }
-
-  .login-input:focus { border-color: var(--bark); }
-
-  .login-btn {
-    width: 100%;
-    padding: 0.9rem;
-    background: var(--bark);
-    color: white;
-    border: none;
-    border-radius: 50px;
-    font-family: 'Gowun Dodum', sans-serif;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-  }
-
-  .login-btn:active { transform: scale(0.97); }
-  .login-btn:hover { background: var(--dusk); }
-
-  .login-error {
-    color: #c0392b;
-    font-size: 0.85rem;
-    margin-top: 0.6rem;
-    display: none;
-  }
-
-  /* ───── 메인 앱 ───── */
-  #app { display: none; position: relative; z-index: 1; }
-
-  /* ───── 헤더 ───── */
-  .site-header {
-    padding: 2rem 1.5rem 1rem;
-    text-align: center;
-    position: relative;
-  }
-
-  .site-title {
-    font-family: 'Noto Serif KR', serif;
-    font-size: 1.8rem;
-    font-weight: 600;
-    color: var(--ink);
-    letter-spacing: -0.02em;
-  }
-
-  .site-subtitle {
-    color: var(--dusk);
-    font-size: 0.85rem;
-    margin-top: 0.3rem;
-  }
-
-  .header-decor {
-    width: 40px; height: 2px;
-    background: linear-gradient(to right, var(--bark), var(--moss));
-    margin: 0.8rem auto 0;
-    border-radius: 2px;
-  }
-
-  /* ───── 탭 네비 ───── */
-  .tab-nav {
-    display: flex;
-    gap: 0;
-    margin: 1.5rem 1.5rem 0;
-    background: var(--warm);
-    border-radius: 50px;
-    padding: 4px;
-  }
-
-  .tab-btn {
-    flex: 1;
-    padding: 0.6rem 0.5rem;
-    border: none;
-    background: transparent;
-    border-radius: 50px;
-    font-family: 'Gowun Dodum', sans-serif;
-    font-size: 0.82rem;
-    color: var(--dusk);
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-
-  .tab-btn.active {
-    background: white;
-    color: var(--ink);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  }
-
-  /* ───── 탭 콘텐츠 ───── */
-  .tab-content { display: none; padding: 1.5rem; }
+  /* 탭 콘텐츠 */
+  .tab-content { display: none; padding: 0 1.5rem; animation: fadeIn 0.3s ease; }
   .tab-content.active { display: block; }
-
-  /* ───── 모임 카드 ───── */
-  .gathering-card {
-    background: white;
-    border-radius: 20px;
-    margin-bottom: 1.5rem;
-    overflow: hidden;
-    box-shadow: 0 2px 12px rgba(61,47,40,0.07);
-    animation: fadeUp 0.4s ease both;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .card-header {
-    background: linear-gradient(135deg, var(--warm), var(--sand));
-    padding: 1.2rem 1.4rem 1rem;
-    position: relative;
-  }
-
-  .card-emoji { font-size: 1.6rem; margin-bottom: 0.3rem; display: block; }
-
-  .card-title {
-    font-family: 'Noto Serif KR', serif;
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: var(--ink);
-  }
-
-  .card-date {
-    font-size: 0.78rem;
-    color: var(--dusk);
-    margin-top: 0.2rem;
-  }
-
-  .card-body { padding: 1.2rem 1.4rem; }
-
-  .card-story {
-    font-size: 0.9rem;
-    color: var(--ink);
-    line-height: 1.8;
-    margin-bottom: 1rem;
-  }
-
-  /* 장소 태그 */
-  .place-tags {
-    display: flex; flex-wrap: wrap; gap: 0.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .place-tag {
-    background: var(--warm);
-    color: var(--dusk);
-    padding: 0.3rem 0.8rem;
-    border-radius: 50px;
-    font-size: 0.78rem;
-  }
-
-  /* 사진 그리드 */
-  .photo-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 1rem;
-  }
-
-  .photo-grid.one { grid-template-columns: 1fr; }
-  .photo-grid.two { grid-template-columns: 1fr 1fr; }
-
-  .photo-item {
-    aspect-ratio: 1;
-    overflow: hidden;
-    cursor: pointer;
-    position: relative;
-  }
-
-  .photo-item img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s;
-  }
-
-  .photo-item:hover img { transform: scale(1.05); }
-
-  .photo-more {
-    position: absolute; inset: 0;
-    background: rgba(0,0,0,0.45);
-    display: flex; align-items: center; justify-content: center;
-    color: white;
-    font-size: 1.2rem;
-    font-weight: 600;
-  }
-
-  /* 지출 요약 */
-  .expense-summary {
-    background: var(--warm);
-    border-radius: 14px;
-    padding: 1rem 1.2rem;
-    margin-bottom: 1rem;
-  }
-
-  .expense-row {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 0.85rem;
-    padding: 0.25rem 0;
-    color: var(--dusk);
-  }
-
-  .expense-row.total {
-    border-top: 1px dashed var(--sand);
-    margin-top: 0.5rem;
-    padding-top: 0.7rem;
-    font-size: 0.95rem;
-    color: var(--ink);
-    font-weight: 600;
-  }
-
-  .expense-row.balance {
-    color: var(--moss);
-    font-size: 0.88rem;
-    font-weight: 600;
-  }
-
-  /* 댓글 */
-  .comments-section { border-top: 1px solid var(--warm); padding-top: 1rem; }
-
-  .comment-item {
-    display: flex; gap: 0.7rem;
-    margin-bottom: 0.8rem;
-    align-items: flex-start;
-  }
-
-  .comment-avatar {
-    width: 30px; height: 30px;
-    background: var(--blush);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.75rem;
-    color: var(--bark);
-    flex-shrink: 0;
-    font-weight: 600;
-  }
-
-  .comment-bubble {
-    background: var(--warm);
-    border-radius: 0 14px 14px 14px;
-    padding: 0.6rem 0.9rem;
-    flex: 1;
-  }
-
-  .comment-name {
-    font-size: 0.72rem;
-    color: var(--bark);
-    font-weight: 600;
-    margin-bottom: 0.2rem;
-  }
-
-  .comment-text { font-size: 0.85rem; color: var(--ink); line-height: 1.5; }
-
-  .comment-input-row {
-    display: flex; gap: 0.5rem;
-    margin-top: 0.8rem;
-  }
-
-  .comment-name-input, .comment-text-input {
-    border: 1.5px solid var(--sand);
-    border-radius: 50px;
-    padding: 0.5rem 0.9rem;
-    font-family: 'Gowun Dodum', sans-serif;
-    font-size: 0.83rem;
-    color: var(--ink);
-    background: white;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .comment-name-input { width: 80px; flex-shrink: 0; }
-  .comment-text-input { flex: 1; }
-  .comment-name-input:focus, .comment-text-input:focus { border-color: var(--bark); }
-
-  .comment-submit {
-    width: 36px; height: 36px;
-    background: var(--moss);
-    border: none; border-radius: 50%;
-    color: white; font-size: 1rem;
-    cursor: pointer; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.2s, transform 0.1s;
-  }
-
-  .comment-submit:active { transform: scale(0.93); }
-
-  /* ───── 회비 탭 ───── */
-  .fee-overview {
-    background: linear-gradient(135deg, var(--bark), var(--dusk));
-    border-radius: 20px;
-    padding: 1.5rem;
-    color: white;
-    margin-bottom: 1.5rem;
-    text-align: center;
-  }
-
-  .fee-overview-label { font-size: 0.82rem; opacity: 0.8; }
-  .fee-overview-amount {
-    font-family: 'Noto Serif KR', serif;
-    font-size: 2.2rem;
-    font-weight: 600;
-    margin: 0.3rem 0;
-  }
-
-  .fee-overview-sub { font-size: 0.82rem; opacity: 0.75; }
-
-  .fee-card {
-    background: white;
-    border-radius: 16px;
-    margin-bottom: 1rem;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(61,47,40,0.06);
-  }
-
-  .fee-card-header {
-    padding: 1rem 1.2rem 0.6rem;
-    border-bottom: 1px solid var(--warm);
-    display: flex; justify-content: space-between; align-items: center;
-  }
-
-  .fee-card-title { font-size: 0.95rem; font-weight: 600; color: var(--ink); }
-  .fee-card-date { font-size: 0.75rem; color: var(--fog); }
-
-  .fee-items { padding: 0.8rem 1.2rem 1rem; }
-
-  .fee-item {
-    display: flex; justify-content: space-between;
-    font-size: 0.83rem;
-    padding: 0.3rem 0;
-    color: var(--dusk);
-    border-bottom: 1px dotted var(--sand);
-  }
-
-  .fee-item:last-child { border-bottom: none; }
-
-  .fee-item-amount { color: var(--ink); font-weight: 600; }
-
-  .fee-balance-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0.7rem 1.2rem;
-    background: var(--warm);
-    font-size: 0.85rem;
-  }
-
-  .balance-positive { color: var(--moss); font-weight: 600; }
-  .balance-negative { color: #c0392b; font-weight: 600; }
-
-  /* ───── 갤러리 탭 ───── */
-  .gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 3px;
-  }
-
-  .gallery-item {
-    aspect-ratio: 1;
-    overflow: hidden;
-    cursor: pointer;
-    position: relative;
-  }
-
-  .gallery-item img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s;
-  }
-
-  .gallery-item:hover img { transform: scale(1.05); }
-
-  .gallery-section-title {
-    font-family: 'Noto Serif KR', serif;
-    font-size: 1rem;
-    color: var(--dusk);
-    margin: 1.2rem 0 0.6rem;
-    display: flex; align-items: center; gap: 0.5rem;
-  }
-
-  .gallery-section-title::after {
-    content: ''; flex: 1;
-    height: 1px; background: var(--sand);
-  }
-
-  /* ───── FAB (글쓰기) ───── */
-  .fab {
-    position: fixed;
-    bottom: 2rem; right: 1.5rem;
-    width: 56px; height: 56px;
-    background: linear-gradient(135deg, var(--bark), var(--moss));
-    border: none; border-radius: 50%;
-    color: white; font-size: 1.5rem;
-    box-shadow: 0 4px 16px rgba(184,149,106,0.45);
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: transform 0.2s, box-shadow 0.2s;
-    z-index: 50;
-  }
-
-  .fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(184,149,106,0.5); }
-  .fab:active { transform: scale(0.95); }
-
-  /* ───── 모달 (글쓰기/보기) ───── */
-  .modal-overlay {
-    position: fixed; inset: 0; z-index: 200;
-    background: rgba(61,47,40,0.4);
-    backdrop-filter: blur(3px);
-    display: none; align-items: flex-end; justify-content: center;
-  }
-
-  .modal-overlay.open { display: flex; }
-
-  .modal-sheet {
-    background: var(--cream);
-    border-radius: 24px 24px 0 0;
-    width: 100%;
-    max-width: 600px;
-    max-height: 92vh;
-    overflow-y: auto;
-    padding: 1.5rem;
-    animation: slideUp 0.3s ease;
-  }
-
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
-  }
-
-  .modal-handle {
-    width: 40px; height: 4px;
-    background: var(--sand);
-    border-radius: 2px;
-    margin: 0 auto 1.2rem;
-  }
-
-  .modal-title {
-    font-family: 'Noto Serif KR', serif;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--ink);
-    margin-bottom: 1.2rem;
-  }
-
-  .form-label {
-    display: block;
-    font-size: 0.78rem;
-    color: var(--dusk);
-    margin-bottom: 0.3rem;
-    margin-top: 1rem;
-  }
-
-  .form-input, .form-textarea {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1.5px solid var(--sand);
-    border-radius: 12px;
-    background: white;
-    font-family: 'Gowun Dodum', sans-serif;
-    font-size: 0.9rem;
-    color: var(--ink);
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .form-input:focus, .form-textarea:focus { border-color: var(--bark); }
-  .form-textarea { resize: none; min-height: 100px; line-height: 1.7; }
-
-  .form-row { display: flex; gap: 0.7rem; }
-  .form-row .form-input { flex: 1; }
-
-  /* 지출 항목 */
-  .expense-items { }
-
-  .expense-item-row {
-    display: flex; gap: 0.5rem; align-items: center;
-    margin-bottom: 0.5rem;
-  }
-
-  .expense-item-row .form-input { flex: 1; }
-  .expense-item-row .form-input.amount { width: 100px; flex: 0 0 100px; }
-
-  .add-expense-btn {
-    background: none;
-    border: 1.5px dashed var(--sand);
-    border-radius: 10px;
-    padding: 0.6rem;
-    width: 100%;
-    font-family: 'Gowun Dodum', sans-serif;
-    font-size: 0.83rem;
-    color: var(--dusk);
-    cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
-    margin-top: 0.3rem;
-  }
-
-  .add-expense-btn:hover { border-color: var(--bark); color: var(--bark); }
-
-  .remove-btn {
-    width: 28px; height: 28px;
-    background: var(--warm);
-    border: none; border-radius: 50%;
-    color: var(--fog);
-    font-size: 1rem; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    transition: background 0.2s, color 0.2s;
-  }
-
-  .remove-btn:hover { background: #fde8e8; color: #c0392b; }
-
-  /* 회비 입력 */
-  .member-fee-row {
-    display: flex; gap: 0.5rem; align-items: center;
-    margin-bottom: 0.5rem;
-  }
-
-  /* 구글 드라이브 링크 */
-  .drive-link-area {
-    display: flex; gap: 0.5rem; align-items: center;
-  }
-
-  .drive-link-area .form-input { flex: 1; }
-
-  .drive-preview {
-    display: flex; flex-wrap: wrap; gap: 0.5rem;
-    margin-top: 0.7rem;
-  }
-
-  .drive-thumb {
-    width: 70px; height: 70px;
-    border-radius: 10px;
-    overflow: hidden;
-    position: relative;
-    background: var(--warm);
-    display: flex; align-items: center; justify-content: center;
-  }
-
-  .drive-thumb img {
-    width: 100%; height: 100%; object-fit: cover;
-  }
-
-  .drive-thumb .remove-thumb {
-    position: absolute; top: 2px; right: 2px;
-    width: 18px; height: 18px;
-    background: rgba(0,0,0,0.5);
-    border: none; border-radius: 50%;
-    color: white; font-size: 0.7rem;
-    cursor: pointer; display: flex;
-    align-items: center; justify-content: center;
-  }
-
-  .emoji-picker {
-    display: flex; flex-wrap: wrap; gap: 0.4rem;
-    margin-top: 0.5rem;
-  }
-
-  .emoji-opt {
-    font-size: 1.3rem;
-    padding: 0.3rem;
-    border-radius: 8px;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: border-color 0.15s;
-  }
-
-  .emoji-opt.selected { border-color: var(--bark); background: var(--warm); }
-
-  .submit-btn {
-    width: 100%;
-    padding: 1rem;
-    background: linear-gradient(135deg, var(--bark), var(--moss));
-    color: white;
-    border: none;
-    border-radius: 50px;
-    font-family: 'Gowun Dodum', sans-serif;
-    font-size: 1rem;
-    cursor: pointer;
-    margin-top: 1.5rem;
-    transition: opacity 0.2s, transform 0.1s;
-  }
-
-  .submit-btn:active { transform: scale(0.97); opacity: 0.9; }
-
-  /* ───── 라이트박스 ───── */
-  #lightbox {
-    position: fixed; inset: 0; z-index: 300;
-    background: rgba(0,0,0,0.92);
-    display: none; align-items: center; justify-content: center;
-  }
-
-  #lightbox.open { display: flex; }
-
-  #lightbox img {
-    max-width: 95vw; max-height: 90vh;
-    object-fit: contain;
-    border-radius: 8px;
-  }
-
-  #lightbox .lb-close {
-    position: absolute; top: 1rem; right: 1rem;
-    background: rgba(255,255,255,0.15);
-    border: none; border-radius: 50%;
-    width: 40px; height: 40px;
-    color: white; font-size: 1.2rem;
-    cursor: pointer; display: flex;
-    align-items: center; justify-content: center;
-  }
-
-  /* ───── 빈 상태 ───── */
-  .empty-state {
-    text-align: center;
-    padding: 3rem 1rem;
-    color: var(--fog);
-  }
-
-  .empty-state-emoji { font-size: 3rem; display: block; margin-bottom: 0.8rem; }
-  .empty-state-text { font-size: 0.9rem; line-height: 1.7; }
-
-  /* ───── 반응형 ───── */
-  @media (min-width: 600px) {
-    .tab-btn { font-size: 0.9rem; }
-    .modal-sheet { border-radius: 24px; margin: auto; max-height: 88vh; }
-    .modal-overlay { align-items: center; }
-    .gallery-grid { grid-template-columns: repeat(4, 1fr); }
-  }
-
-  /* 설정 탭 */
-  .settings-section {
-    background: white;
-    border-radius: 16px;
-    padding: 1.2rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 8px rgba(61,47,40,0.05);
-  }
-
-  .settings-title {
-    font-size: 0.78rem;
-    color: var(--dusk);
-    font-weight: 600;
-    margin-bottom: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .settings-item {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0.6rem 0;
-    border-bottom: 1px solid var(--warm);
-    font-size: 0.88rem;
-    color: var(--ink);
-  }
-
-  .settings-item:last-child { border-bottom: none; }
-
-  .settings-val {
-    font-size: 0.82rem;
-    color: var(--dusk);
-  }
-
-  .danger-btn {
-    width: 100%;
-    padding: 0.8rem;
-    background: none;
-    border: 1.5px solid #e0b0b0;
-    border-radius: 12px;
-    color: #c0392b;
-    font-family: 'Gowun Dodum', sans-serif;
-    font-size: 0.88rem;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .danger-btn:hover { background: #fde8e8; }
-
-  /* 누적 잔액 표시 */
-  .total-balance-bar {
-    background: linear-gradient(to right, var(--moss), var(--bark));
-    color: white;
-    border-radius: 14px;
-    padding: 1rem 1.4rem;
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 1.2rem;
-  }
-
-  .tb-label { font-size: 0.82rem; opacity: 0.85; }
-  .tb-amount { font-family: 'Noto Serif KR', serif; font-size: 1.4rem; font-weight: 600; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* 모임 카드 (접기/펼치기 적용) */
+  .gathering-card { background: white; border-radius: 20px; margin-bottom: 1.5rem; box-shadow: 0 2px 12px rgba(61,47,40,0.07); overflow: hidden; }
+  .card-header { background: linear-gradient(135deg, var(--warm), var(--sand)); padding: 1.2rem 1.4rem; position: relative; display: flex; justify-content: space-between; align-items: flex-start; }
+  .card-emoji { font-size: 1.8rem; display: block; margin-bottom: 0.3rem; }
+  .card-title { font-family: 'Noto Serif KR', serif; font-size: 1.15rem; font-weight: 600; }
+  .card-date { font-size: 0.8rem; color: var(--dusk); margin-top: 0.2rem; }
+  .card-tools { display: flex; gap: 0.4rem; }
+  .tool-btn { background: rgba(255,255,255,0.5); border: none; width: 32px; height: 32px; border-radius: 50%; color: var(--ink); cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
+  
+  .card-body { padding: 1.2rem 1.4rem; transition: max-height 0.3s ease; overflow: hidden; }
+  .card-body.collapsed { max-height: 0; padding-top: 0; padding-bottom: 0; }
+  
+  .toggle-btn { width: 100%; text-align: center; background: var(--warm); border: none; padding: 0.5rem; font-size: 0.8rem; color: var(--dusk); cursor: pointer; }
+  
+  .main-photo { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px; margin-bottom: 1rem; }
+  .card-story { font-size: 0.9rem; line-height: 1.7; margin-bottom: 1rem; white-space: pre-wrap; }
+  
+  /* 하단 네비게이션 바 (모바일 최적화) */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-around; align-items: center; z-index: 50; padding-bottom: env(safe-area-inset-bottom); border-radius: 20px 20px 0 0; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; color: var(--fog); font-size: 0.75rem; text-decoration: none; border: none; background: none; cursor: pointer; flex: 1; transition: color 0.2s; }
+  .nav-item.active { color: var(--moss); font-weight: 600; }
+  .nav-icon { font-size: 1.4rem; }
+  
+  /* FAB (글쓰기) */
+  .fab { position: fixed; bottom: 90px; right: 1.5rem; width: 56px; height: 56px; background: linear-gradient(135deg, var(--bark), var(--moss)); border: none; border-radius: 50%; color: white; font-size: 1.5rem; box-shadow: 0 4px 16px rgba(184,149,106,0.45); cursor: pointer; z-index: 50; display: flex; align-items: center; justify-content: center; }
+
+  /* 회비 총액 패널 */
+  .total-fund-card { background: linear-gradient(135deg, var(--ink), var(--dusk)); color: white; padding: 1.5rem; border-radius: 20px; margin-bottom: 1.5rem; text-align: center; }
+  .tf-label { font-size: 0.85rem; opacity: 0.8; margin-bottom: 0.5rem; }
+  .tf-amount { font-family: 'Noto Serif KR', serif; font-size: 2.2rem; font-weight: 600; }
+  
+  /* 입력 폼 공통 */
+  .form-label { display: block; font-size: 0.8rem; color: var(--dusk); margin: 1rem 0 0.3rem; }
+  .form-input, .form-textarea, .form-select { width: 100%; padding: 0.8rem 1rem; border: 1.5px solid var(--sand); border-radius: 12px; font-family: 'Gowun Dodum', sans-serif; font-size: 0.95rem; background: white; outline: none; }
+  .form-textarea { min-height: 120px; resize: none; }
+  .btn-primary { width: 100%; padding: 1rem; background: var(--moss); color: white; border: none; border-radius: 14px; font-family: 'Gowun Dodum', sans-serif; font-size: 1rem; font-weight: 600; margin-top: 1.5rem; cursor: pointer; }
+  
+  /* 모달 (전체 화면 덮는 폰 스타일) */
+  .modal { position: fixed; inset: 0; background: var(--cream); z-index: 100; display: none; flex-direction: column; }
+  .modal-header { padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; background: white; border-bottom: 1px solid var(--warm); }
+  .modal-body { flex: 1; overflow-y: auto; padding: 1.5rem; }
+
+  /* 갤러리 그리드 */
+  .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .gallery-item { aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--warm); }
+  .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* 라이트박스 및 사진별 댓글 바텀시트 */
+  #lightbox { position: fixed; inset: 0; background: #000; z-index: 200; display: none; flex-direction: column; }
+  .lb-img-container { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+  .lb-img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .lb-close { position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; }
+  
+  /* 사진 댓글 바텀시트 */
+  .photo-comments-sheet { background: white; border-radius: 20px 20px 0 0; max-height: 50vh; display: flex; flex-direction: column; }
+  .sheet-handle { width: 40px; height: 4px; background: var(--sand); border-radius: 2px; margin: 10px auto; }
+  .comment-list { flex: 1; overflow-y: auto; padding: 1rem; }
+  .comment-input-area { display: flex; padding: 1rem; border-top: 1px solid var(--warm); gap: 0.5rem; background: var(--cream); }
 </style>
 </head>
 <body>
 
-<!-- 로그인 -->
-<div id="loginScreen">
-  <div class="login-card">
-    <span class="login-emoji">🍃</span>
-    <div class="login-title">우리들의 모임</div>
-    <div class="login-sub">소중한 우리만의 공간이에요<br>비밀번호를 입력해주세요</div>
-    <input type="password" class="login-input" id="pwInput" placeholder="• • • • •" maxlength="20"
-      onkeydown="if(event.key==='Enter') tryLogin()">
-    <button class="login-btn" onclick="tryLogin()">들어가기</button>
-    <div class="login-error" id="loginError">비밀번호가 틀렸어요 🥲</div>
-  </div>
+<div id="loading">
+  <div class="spinner"></div>
+  <div id="loadingText">데이터를 불러오는 중...</div>
 </div>
 
-<!-- 메인 앱 -->
-<div id="app">
-
-  <header class="site-header">
-    <div class="site-title">🌿 우리들의 모임</div>
-    <div class="site-subtitle" id="memberNames">친구들과 함께하는 소소한 기록</div>
-    <div class="header-decor"></div>
-  </header>
-
-  <nav class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('memories')">📖 기록</button>
-    <button class="tab-btn" onclick="switchTab('fees')">💰 회비</button>
-    <button class="tab-btn" onclick="switchTab('gallery')">🖼 갤러리</button>
-    <button class="tab-btn" onclick="switchTab('settings')">⚙️ 설정</button>
-  </nav>
-
-  <!-- 기록 탭 -->
-  <div class="tab-content active" id="tab-memories">
-    <div id="memoriesList"></div>
-    <div class="empty-state" id="memoriesEmpty" style="display:none">
-      <span class="empty-state-emoji">🌱</span>
-      <div class="empty-state-text">아직 기록이 없어요<br>+ 버튼을 눌러 첫 모임을 기록해봐요!</div>
-    </div>
+<header class="site-header">
+  <div class="site-title">
+    🌿 <span id="displayGroupName">우리들의 아지트</span>
+    <button class="drive-btn" onclick="goDrive()" title="공용 드라이브 이동">☁️</button>
   </div>
+</header>
 
-  <!-- 회비 탭 -->
-  <div class="tab-content" id="tab-fees">
-    <div id="feesList"></div>
+<div id="tab-memories" class="tab-content active">
+  <div class="top-actions">
+    <button class="action-btn" onclick="toggleAllCards()">전체 펼치기/접기</button>
   </div>
-
-  <!-- 갤러리 탭 -->
-  <div class="tab-content" id="tab-gallery">
-    <div id="galleryContent"></div>
-    <div class="empty-state" id="galleryEmpty" style="display:none">
-      <span class="empty-state-emoji">📷</span>
-      <div class="empty-state-text">모임을 기록하면<br>사진이 여기 모여요</div>
-    </div>
-  </div>
-
-  <!-- 설정 탭 -->
-  <div class="tab-content" id="tab-settings">
-    <div class="settings-section">
-      <div class="settings-title">모임 정보</div>
-      <div class="settings-item">
-        <span>모임 이름</span>
-        <span class="settings-val" id="st-groupName">우리들의 모임</span>
-      </div>
-      <div class="settings-item">
-        <span>구성원</span>
-        <span class="settings-val" id="st-members">-</span>
-      </div>
-    </div>
-    <div class="settings-section">
-      <div class="settings-title">모임 이름 변경</div>
-      <label class="form-label">모임 이름</label>
-      <input type="text" class="form-input" id="groupNameInput" placeholder="우리들의 모임">
-      <label class="form-label">구성원 (쉼표로 구분)</label>
-      <input type="text" class="form-input" id="membersInput" placeholder="민지, 지아, 수연, 미래">
-      <button class="submit-btn" style="margin-top:1rem" onclick="saveSettings()">저장하기</button>
-    </div>
-    <div class="settings-section">
-      <div class="settings-title">비밀번호 변경</div>
-      <label class="form-label">새 비밀번호</label>
-      <input type="password" class="form-input" id="newPwInput" placeholder="새 비밀번호">
-      <button class="submit-btn" style="margin-top:1rem;background:linear-gradient(135deg,var(--dusk),var(--bark))" onclick="changePassword()">변경하기</button>
-    </div>
-    <div class="settings-section">
-      <button class="danger-btn" onclick="logout()">🚪 로그아웃</button>
-    </div>
-  </div>
-
-  <!-- FAB -->
-  <button class="fab" onclick="openWriteModal()" id="fabBtn">＋</button>
-
+  <div id="memoriesList"></div>
 </div>
 
-<!-- 글쓰기 모달 -->
-<div class="modal-overlay" id="writeModal">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title">✏️ 모임 기록하기</div>
-
-    <label class="form-label">어떤 모임이었나요?</label>
-    <div class="emoji-picker" id="emojiPicker"></div>
-
-    <label class="form-label">모임 이름</label>
-    <input type="text" class="form-input" id="f-title" placeholder="예) 봄 나들이, 연말 모임...">
-
-    <div class="form-row">
-      <div style="flex:1">
-        <label class="form-label">날짜</label>
-        <input type="date" class="form-input" id="f-date">
-      </div>
-      <div style="flex:1">
-        <label class="form-label">유형</label>
-        <select class="form-input" id="f-type" style="appearance:none;cursor:pointer">
-          <option>당일치기</option>
-          <option>1박 2일</option>
-          <option>2박 3일</option>
-          <option>기타</option>
-        </select>
-      </div>
-    </div>
-
-    <label class="form-label">어디에 갔나요?</label>
-    <input type="text" class="form-input" id="f-places" placeholder="예) 홍대 카페, 노량진 수산시장, 강남">
-
-    <label class="form-label">어떤 모임이었나요? 자유롭게 써주세요 🌿</label>
-    <textarea class="form-textarea" id="f-story" placeholder="먹고 마시고 웃고... 그날의 이야기를 남겨요"></textarea>
-
-    <label class="form-label">💰 지출 내역</label>
-    <div id="expenseList"></div>
-    <button class="add-expense-btn" onclick="addExpenseRow()">＋ 지출 항목 추가</button>
-
-    <label class="form-label">📸 구글 드라이브 사진 링크</label>
-    <div style="font-size:0.75rem;color:var(--dusk);margin-bottom:0.5rem">
-      구글 드라이브에서 사진 공유 링크를 복사해서 붙여넣어 주세요
-    </div>
-    <div id="driveLinks"></div>
-    <button class="add-expense-btn" onclick="addDriveLink()" style="margin-top:0.3rem">＋ 사진 링크 추가</button>
-
-    <label class="form-label">💸 회비 납부 내역</label>
-    <div id="feeList"></div>
-    <button class="add-expense-btn" onclick="addFeeRow()">＋ 회비 항목 추가</button>
-
-    <button class="submit-btn" onclick="submitGathering()">기록 저장하기 🌿</button>
-    <button class="danger-btn" style="margin-top:0.7rem" onclick="closeWriteModal()">취소</button>
+<div id="tab-fees" class="tab-content">
+  <div class="total-fund-card">
+    <div class="tf-label">우리의 정기 회비 잔액</div>
+    <div class="tf-amount"><span id="totalBalance">0</span>원</div>
+    <button class="action-btn" style="color:white; border-color:rgba(255,255,255,0.3); margin-top:1rem;" onclick="openFeeModal()">+ 정기 회비 입금 기록</button>
   </div>
+  <div id="feesList"></div>
 </div>
 
-<!-- 라이트박스 -->
-<div id="lightbox" onclick="closeLightbox()">
-  <button class="lb-close" onclick="closeLightbox()">✕</button>
-  <img id="lbImg" src="" alt="">
+<div id="tab-gallery" class="tab-content">
+  <div id="galleryContent"></div>
+</div>
+
+<div id="tab-settings" class="tab-content">
+  <h3 style="margin-bottom:1rem; color:var(--dusk)">설정</h3>
+  <label class="form-label">모임 이름</label>
+  <input type="text" id="set-name" class="form-input">
+  <label class="form-label">공용 구글 드라이브 주소</label>
+  <input type="url" id="set-drive" class="form-input" placeholder="https://drive.google.com/...">
+  <label class="form-label">작성자 닉네임 (댓글용)</label>
+  <input type="text" id="set-author" class="form-input" placeholder="내 이름">
+  <button class="btn-primary" onclick="saveSettings()">설정 저장하기</button>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="switchTab('memories')">
+    <span class="nav-icon">📖</span><span>기록</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('fees')">
+    <span class="nav-icon">💰</span><span>회비</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('gallery')">
+    <span class="nav-icon">🖼</span><span>갤러리</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('settings')">
+    <span class="nav-icon">⚙️</span><span>설정</span>
+  </button>
+</nav>
+
+<button class="fab" onclick="openWriteModal()">＋</button>
+
+<div id="writeModal" class="modal">
+  <div class="modal-header">
+    <h3 id="modalTitle">✏️ 기록하기</h3>
+    <button class="action-btn" onclick="closeWriteModal()">닫기</button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="f-id">
+    
+    <label class="form-label">유형</label>
+    <select id="f-type" class="form-select" onchange="toggleFormFields()">
+      <option value="gathering">정기/일반 모임 (지출 포함)</option>
+      <option value="daily">소소한 일상 (사진과 글만)</option>
+    </select>
+
+    <label class="form-label">제목</label>
+    <input type="text" id="f-title" class="form-input" placeholder="예: 봄맞이 캠핑, 카페 투어">
+    
+    <label class="form-label">날짜</label>
+    <input type="date" id="f-date" class="form-input">
+
+    <label class="form-label">기억에 남는 순간 (메인 사진 URL)</label>
+    <input type="url" id="f-mainPhoto" class="form-input" placeholder="구글 드라이브 이미지 링크">
+    
+    <label class="form-label">우리의 이야기</label>
+    <textarea id="f-story" class="form-textarea" placeholder="그날의 분위기, 재미있었던 일..."></textarea>
+
+    <div id="moneyFields">
+      <label class="form-label">어디 갔나요? (쉼표로 구분)</label>
+      <input type="text" id="f-places" class="form-input">
+      
+      <label class="form-label">💸 이 모임에 쓴 총 지출액</label>
+      <input type="number" id="f-expense" class="form-input" placeholder="예: 150000">
+    </div>
+
+    <label class="form-label">📸 갤러리 사진 (구글 드라이브 폴더/개별 링크 쉼표로 구분)</label>
+    <textarea id="f-galleryLinks" class="form-textarea" style="min-height:80px;" placeholder="링크 여러 개 등록 가능"></textarea>
+
+    <button class="btn-primary" onclick="saveMemory()">저장하기 🌿</button>
+  </div>
 </div>
 
 <script>
-// ═══════════════════════════════════
-//  설정 & 상수
-// ═══════════════════════════════════
-const STORAGE_KEY = 'gathering_v1';
-const SETTINGS_KEY = 'gathering_settings_v1';
-const AUTH_KEY = 'gathering_auth_v1';
-const DEFAULT_PW = '1234'; // 초기 비밀번호
+// ==========================================
+// 🚨 여기에 발급받은 키를 정확히 입력하세요!
+// ==========================================
+const WEB_APP_URL = "여기에_구글_웹앱_URL을_붙여넣으세요"; 
+const KAKAO_KEY = "여기에_카카오_JavaScript_키를_붙여넣으세요";
+// ==========================================
 
-const EMOJIS = ['🌿','🍽','🏕','🎉','🍻','☕','🌸','🎬','🚗','🌊','🍰','🏖','🍜','🎶','✈️','🏔'];
+let globalData = []; // 서버에서 불러온 전체 데이터
+let settings = JSON.parse(localStorage.getItem('gathering_settings')) || { name: '우리들의 아지트', drive: '', author: '' };
 
-// ═══════════════════════════════════
-//  데이터 관리
-// ═══════════════════════════════════
-function loadData() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-  catch { return []; }
+// 카카오 SDK 초기화
+if (KAKAO_KEY !== "여기에_카카오_JavaScript_키를_붙여넣으세요") {
+  Kakao.init(KAKAO_KEY);
 }
 
-function saveData(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+// 1. 초기 실행 및 데이터 로딩
+window.onload = () => {
+  document.getElementById('set-name').value = settings.name;
+  document.getElementById('set-drive').value = settings.drive;
+  document.getElementById('set-author').value = settings.author;
+  document.getElementById('displayGroupName').innerText = settings.name;
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  
+  fetchData();
+};
+
+function showLoading(msg) {
+  document.getElementById('loadingText').innerText = msg;
+  document.getElementById('loading').style.display = 'flex';
+}
+function hideLoading() { document.getElementById('loading').style.display = 'none'; }
+
+// 서버에서 데이터 가져오기
+async function fetchData() {
+  if (WEB_APP_URL.includes("여기에")) {
+    alert("코드 하단에 구글 WEB_APP_URL을 먼저 입력해주세요!");
+    return;
+  }
+  showLoading("기억을 불러오는 중...");
+  try {
+    const res = await fetch(WEB_APP_URL);
+    globalData = await res.json();
+    renderAll();
+  } catch (e) {
+    alert("데이터를 불러오는데 실패했어요. 다시 시도해주세요.");
+  }
+  hideLoading();
 }
 
-function loadSettings() {
-  const def = { groupName:'우리들의 모임', members:'', password: DEFAULT_PW };
-  try { return Object.assign(def, JSON.parse(localStorage.getItem(SETTINGS_KEY))); }
-  catch { return def; }
+// 서버에 데이터 저장하기
+async function saveData(record) {
+  showLoading("기억을 저장하는 중...");
+  try {
+    await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'save', record: { id: record.id, json: JSON.stringify(record) } })
+    });
+    await fetchData(); // 저장 후 새로고침
+  } catch (e) {
+    alert("저장에 실패했어요.");
+  }
+  hideLoading();
+}
+
+// 2. 화면 렌더링
+function renderAll() {
+  renderMemories();
+  // renderFees(), renderGallery() 등은 탭 전환 시 또는 여기서 일괄 호출
+}
+
+function renderMemories() {
+  const list = document.getElementById('memoriesList');
+  list.innerHTML = '';
+  
+  globalData.forEach(item => {
+    const isDaily = item.type === 'daily';
+    const expenseHtml = !isDaily && item.expense ? `<div style="margin-top:1rem; padding-top:1rem; border-top:1px dashed var(--sand); font-weight:600;">총 지출: ${Number(item.expense).toLocaleString()}원</div>` : '';
+    const mainPhotoHtml = item.mainPhoto ? `<img src="${convertDriveUrl(item.mainPhoto)}" class="main-photo">` : '';
+    
+    list.innerHTML += `
+      <div class="gathering-card">
+        <div class="card-header">
+          <div>
+            <div class="card-emoji">${isDaily ? '☕' : '🌿'}</div>
+            <div class="card-title">${item.title}</div>
+            <div class="card-date">${item.date}</div>
+          </div>
+          <div class="card-tools">
+            <button class="tool-btn" onclick="editMemory(${item.id})">✏️</button>
+            <button class="tool-btn" onclick="shareKakao('${item.title}', '${item.mainPhoto}')">💬</button>
+          </div>
+        </div>
+        <div class="card-body" id="body-${item.id}">
+          ${mainPhotoHtml}
+          <div class="card-story">${item.story}</div>
+          ${expenseHtml}
+        </div>
+        <button class="toggle-btn" onclick="toggleCard(${item.id})">접기/펼치기</button>
+      </div>
+    `;
+  });
+}
+
+// 3. 기능: 저장, 수정, UI 토글
+function saveMemory() {
+  const record = {
+    id: document.getElementById('f-id').value || Date.now(),
+    type: document.getElementById('f-type').value,
+    title: document.getElementById('f-title').value,
+    date: document.getElementById('f-date').value,
+    mainPhoto: document.getElementById('f-mainPhoto').value,
+    story: document.getElementById('f-story').value,
+    places: document.getElementById('f-places').value,
+    expense: document.getElementById('f-expense').value,
+    galleryLinks: document.getElementById('f-galleryLinks').value,
+    comments: []
+  };
+  
+  if(!record.title) { alert("제목을 입력해주세요!"); return; }
+  saveData(record);
+  closeWriteModal();
+}
+
+function editMemory(id) {
+  const item = globalData.find(d => d.id == id);
+  if(!item) return;
+  document.getElementById('f-id').value = item.id;
+  document.getElementById('f-type').value = item.type || 'gathering';
+  document.getElementById('f-title').value = item.title;
+  document.getElementById('f-date').value = item.date;
+  document.getElementById('f-mainPhoto').value = item.mainPhoto || '';
+  document.getElementById('f-story').value = item.story;
+  document.getElementById('f-places').value = item.places || '';
+  document.getElementById('f-expense').value = item.expense || '';
+  document.getElementById('f-galleryLinks').value = item.galleryLinks || '';
+  
+  toggleFormFields();
+  document.getElementById('writeModal').style.display = 'flex';
+}
+
+function toggleFormFields() {
+  const type = document.getElementById('f-type').value;
+  document.getElementById('moneyFields').style.display = type === 'daily' ? 'none' : 'block';
+}
+
+function toggleCard(id) {
+  document.getElementById(`body-${id}`).classList.toggle('collapsed');
+}
+
+let allCollapsed = false;
+function toggleAllCards() {
+  allCollapsed = !allCollapsed;
+  document.querySelectorAll('.card-body').forEach(el => {
+    allCollapsed ? el.classList.add('collapsed') : el.classList.remove('collapsed');
+  });
+}
+
+// 4. 카카오톡 공유
+function shareKakao(title, imgUrl) {
+  if (!Kakao.isInitialized()) { alert('카카오 API가 설정되지 않았습니다.'); return; }
+  Kakao.Share.sendDefault({
+    objectType: 'feed',
+    content: {
+      title: `[우리들의 아지트] ${title}`,
+      description: '모임 기록이 업데이트 되었어요! 지금 확인해보세요 🌿',
+      imageUrl: convertDriveUrl(imgUrl) || 'https://via.placeholder.com/400x300.png?text=Gathering',
+      link: { mobileWebUrl: location.href, webUrl: location.href },
+    },
+    buttons: [{ title: '앱으로 보기', link: { mobileWebUrl: location.href, webUrl: location.href } }]
+  });
+}
+
+// 5. 기타 유틸
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById(`tab-${tabId}`).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+function openWriteModal() {
+  document.getElementById('f-id').value = '';
+  document.getElementById('writeModal').style.display = 'flex';
+}
+function closeWriteModal() { document.getElementById('writeModal').style.display = 'none'; }
+
+function goDrive() {
+  if(settings.drive) window.open(settings.drive, '_blank');
+  else alert('설정 탭에서 공용 구글 드라이브 주소를 먼저 입력해주세요.');
 }
 
 function saveSettings() {
-  const s = loadSettings();
-  s.groupName = document.getElementById('groupNameInput').value.trim() || s.groupName;
-  s.members = document.getElementById('membersInput').value.trim();
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
-  applySettings();
-  alert('저장됐어요 🌿');
+  settings.name = document.getElementById('set-name').value;
+  settings.drive = document.getElementById('set-drive').value;
+  settings.author = document.getElementById('set-author').value;
+  localStorage.setItem('gathering_settings', JSON.stringify(settings));
+  document.getElementById('displayGroupName').innerText = settings.name;
+  alert('설정이 저장되었습니다.');
 }
 
-function changePassword() {
-  const np = document.getElementById('newPwInput').value.trim();
-  if (!np) { alert('새 비밀번호를 입력해주세요'); return; }
-  const s = loadSettings();
-  s.password = np;
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
-  document.getElementById('newPwInput').value = '';
-  alert('비밀번호가 변경됐어요 🔑');
-}
-
-function applySettings() {
-  const s = loadSettings();
-  document.getElementById('site-title-text') && (document.getElementById('site-title-text').textContent = s.groupName);
-  document.querySelector('.site-title').textContent = '🌿 ' + s.groupName;
-  document.getElementById('memberNames').textContent = s.members || '친구들과 함께하는 소소한 기록';
-  document.getElementById('st-groupName').textContent = s.groupName;
-  document.getElementById('st-members').textContent = s.members || '-';
-  document.getElementById('groupNameInput').value = s.groupName;
-  document.getElementById('membersInput').value = s.members;
-}
-
-// ═══════════════════════════════════
-//  인증
-// ═══════════════════════════════════
-function tryLogin() {
-  const pw = document.getElementById('pwInput').value;
-  const s = loadSettings();
-  if (pw === s.password) {
-    sessionStorage.setItem(AUTH_KEY, '1');
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    init();
-  } else {
-    document.getElementById('loginError').style.display = 'block';
-    document.getElementById('pwInput').value = '';
-  }
-}
-
-function logout() {
-  sessionStorage.removeItem(AUTH_KEY);
-  location.reload();
-}
-
-// ═══════════════════════════════════
-//  초기화
-// ═══════════════════════════════════
-function init() {
-  applySettings();
-  initEmojiPicker();
-  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
-  renderMemories();
-  renderFees();
-  renderGallery();
-  // 기본 지출/회비/드라이브 행
-  addExpenseRow();
-  addFeeRow();
-  addDriveLink();
-}
-
-window.onload = function() {
-  if (sessionStorage.getItem(AUTH_KEY) === '1') {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    init();
-  }
-  document.getElementById('pwInput').focus();
-};
-
-// ═══════════════════════════════════
-//  이모지 피커
-// ═══════════════════════════════════
-let selectedEmoji = '🌿';
-
-function initEmojiPicker() {
-  const picker = document.getElementById('emojiPicker');
-  picker.innerHTML = '';
-  EMOJIS.forEach(e => {
-    const btn = document.createElement('button');
-    btn.className = 'emoji-opt' + (e === selectedEmoji ? ' selected' : '');
-    btn.textContent = e;
-    btn.type = 'button';
-    btn.onclick = () => {
-      selectedEmoji = e;
-      document.querySelectorAll('.emoji-opt').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-    };
-    picker.appendChild(btn);
-  });
-}
-
-// ═══════════════════════════════════
-//  탭 전환
-// ═══════════════════════════════════
-function switchTab(name) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById('tab-' + name).classList.add('active');
-  document.getElementById('fabBtn').style.display = name === 'memories' ? 'flex' : 'none';
-}
-
-// ═══════════════════════════════════
-//  지출 행
-// ═══════════════════════════════════
-function addExpenseRow(name='', amount='') {
-  const row = document.createElement('div');
-  row.className = 'expense-item-row';
-  row.innerHTML = `
-    <input type="text" class="form-input exp-name" placeholder="항목 (예: 저녁식사)" value="${name}">
-    <input type="number" class="form-input amount exp-amt" placeholder="금액" value="${amount}">
-    <button class="remove-btn" onclick="this.parentElement.remove()">×</button>
-  `;
-  document.getElementById('expenseList').appendChild(row);
-}
-
-function addFeeRow(name='', amount='') {
-  const row = document.createElement('div');
-  row.className = 'expense-item-row';
-  row.innerHTML = `
-    <input type="text" class="form-input fee-name" placeholder="이름" value="${name}">
-    <input type="number" class="form-input amount fee-amt" placeholder="납부 금액" value="${amount}">
-    <button class="remove-btn" onclick="this.parentElement.remove()">×</button>
-  `;
-  document.getElementById('feeList').appendChild(row);
-}
-
-function addDriveLink(link='') {
-  const row = document.createElement('div');
-  row.className = 'expense-item-row';
-  row.innerHTML = `
-    <input type="url" class="form-input drive-url" placeholder="구글 드라이브 링크" value="${link}" style="font-size:0.78rem">
-    <button class="remove-btn" onclick="this.parentElement.remove()">×</button>
-  `;
-  document.getElementById('driveLinks').appendChild(row);
-}
-
-// ═══════════════════════════════════
-//  구글 드라이브 URL → 직접 이미지 URL 변환
-// ═══════════════════════════════════
-function driveUrlToThumb(url) {
-  // https://drive.google.com/file/d/FILE_ID/view → thumbnail
-  const m = url.match(/\/file\/d\/([^/]+)\//);
-  if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w400`;
-  // https://drive.google.com/open?id=FILE_ID
-  const m2 = url.match(/[?&]id=([^&]+)/);
-  if (m2) return `https://drive.google.com/thumbnail?id=${m2[1]}&sz=w400`;
+// 드라이브 URL을 썸네일/미리보기로 변환하는 함수
+function convertDriveUrl(url) {
+  if(!url) return '';
+  const m = url.match(/\/file\/d\/([^/]+)\//) || url.match(/[?&]id=([^&]+)/);
+  if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w800`;
   return url;
 }
-
-function driveUrlToFull(url) {
-  const m = url.match(/\/file\/d\/([^/]+)\//);
-  if (m) return `https://drive.google.com/file/d/${m[1]}/preview`;
-  const m2 = url.match(/[?&]id=([^&]+)/);
-  if (m2) return `https://drive.google.com/file/d/${m2[1]}/preview`;
-  return url;
-}
-
-// ═══════════════════════════════════
-//  모임 저장
-// ═══════════════════════════════════
-function submitGathering() {
-  const title = document.getElementById('f-title').value.trim();
-  if (!title) { alert('모임 이름을 입력해주세요 😊'); return; }
-
-  const expenses = [];
-  document.querySelectorAll('.expense-item-row').forEach(row => {
-    const n = row.querySelector('.exp-name');
-    const a = row.querySelector('.exp-amt');
-    if (n && a && n.value.trim()) expenses.push({ name: n.value.trim(), amount: parseInt(a.value) || 0 });
-  });
-
-  const fees = [];
-  document.querySelectorAll('#feeList .expense-item-row').forEach(row => {
-    const n = row.querySelector('.fee-name');
-    const a = row.querySelector('.fee-amt');
-    if (n && a && n.value.trim()) fees.push({ name: n.value.trim(), amount: parseInt(a.value) || 0 });
-  });
-
-  const driveLinks = [];
-  document.querySelectorAll('.drive-url').forEach(inp => {
-    if (inp.value.trim()) driveLinks.push(inp.value.trim());
-  });
-
-  const gathering = {
-    id: Date.now(),
-    emoji: selectedEmoji,
-    title,
-    date: document.getElementById('f-date').value,
-    type: document.getElementById('f-type').value,
-    places: document.getElementById('f-places').value.split(',').map(s => s.trim()).filter(Boolean),
-    story: document.getElementById('f-story').value.trim(),
-    expenses,
-    fees,
-    driveLinks,
-    comments: []
-  };
-
-  const data = loadData();
-  data.unshift(gathering);
-  saveData(data);
-
-  closeWriteModal();
-  renderMemories();
-  renderFees();
-  renderGallery();
-}
-
-// ═══════════════════════════════════
-//  렌더링 — 기록 탭
-// ═══════════════════════════════════
-function renderMemories() {
-  const data = loadData();
-  const list = document.getElementById('memoriesList');
-  const empty = document.getElementById('memoriesEmpty');
-  list.innerHTML = '';
-
-  if (!data.length) { empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-
-  data.forEach((g, gi) => {
-    const totalExp = g.expenses.reduce((s, e) => s + e.amount, 0);
-    const totalFee = g.fees.reduce((s, f) => s + f.amount, 0);
-    const balance = totalFee - totalExp;
-
-    const card = document.createElement('div');
-    card.className = 'gathering-card';
-    card.style.animationDelay = (gi * 0.07) + 's';
-
-    // 사진 그리드
-    let photoHtml = '';
-    if (g.driveLinks && g.driveLinks.length) {
-      const cols = g.driveLinks.length === 1 ? 'one' : g.driveLinks.length === 2 ? 'two' : '';
-      const show = g.driveLinks.slice(0, 4);
-      const more = g.driveLinks.length - 4;
-      photoHtml = `<div class="photo-grid ${cols}">` + show.map((url, i) => {
-        const thumb = driveUrlToThumb(url);
-        const isLast = i === 3 && more > 0;
-        return `<div class="photo-item" onclick="openLightbox('${thumb}')">
-          <img src="${thumb}" onerror="this.style.display='none'" loading="lazy">
-          ${isLast ? `<div class="photo-more">+${more}</div>` : ''}
-        </div>`;
-      }).join('') + '</div>';
-    }
-
-    // 지출 내역
-    let expHtml = '';
-    if (g.expenses.length) {
-      expHtml = `<div class="expense-summary">
-        ${g.expenses.map(e => `<div class="expense-row"><span>${e.name}</span><span>${e.amount.toLocaleString()}원</span></div>`).join('')}
-        <div class="expense-row total"><span>총 지출</span><span>${totalExp.toLocaleString()}원</span></div>
-        ${totalFee > 0 ? `<div class="expense-row balance"><span>잔액</span><span>${balance >= 0 ? '+' : ''}${balance.toLocaleString()}원</span></div>` : ''}
-      </div>`;
-    }
-
-    // 장소 태그
-    const placeHtml = g.places.length
-      ? `<div class="place-tags">${g.places.map(p => `<span class="place-tag">📍 ${p}</span>`).join('')}</div>` : '';
-
-    // 댓글
-    const cmts = (g.comments || []).map(c => `
-      <div class="comment-item">
-        <div class="comment-avatar">${c.name.slice(0,1)}</div>
-        <div class="comment-bubble">
-          <div class="comment-name">${c.name}</div>
-          <div class="comment-text">${c.text}</div>
-        </div>
-      </div>
-    `).join('');
-
-    card.innerHTML = `
-      <div class="card-header">
-        <span class="card-emoji">${g.emoji}</span>
-        <div class="card-title">${g.title}</div>
-        <div class="card-date">${formatDate(g.date)} · ${g.type}</div>
-      </div>
-      <div class="card-body">
-        ${placeHtml}
-        ${g.story ? `<div class="card-story">${g.story.replace(/\n/g,'<br>')}</div>` : ''}
-        ${photoHtml}
-        ${expHtml}
-        <div class="comments-section">
-          <div id="cmts-${g.id}">${cmts}</div>
-          <div class="comment-input-row">
-            <input type="text" class="comment-name-input" id="cn-${g.id}" placeholder="이름">
-            <input type="text" class="comment-text-input" id="ct-${g.id}" placeholder="한마디 남기기 💬"
-              onkeydown="if(event.key==='Enter') addComment(${g.id})">
-            <button class="comment-submit" onclick="addComment(${g.id})">↑</button>
-          </div>
-        </div>
-      </div>
-    `;
-
-    list.appendChild(card);
-  });
-}
-
-function addComment(gid) {
-  const name = document.getElementById('cn-' + gid).value.trim();
-  const text = document.getElementById('ct-' + gid).value.trim();
-  if (!name || !text) { alert('이름과 내용을 입력해주세요'); return; }
-
-  const data = loadData();
-  const g = data.find(x => x.id === gid);
-  if (!g) return;
-  g.comments = g.comments || [];
-  g.comments.push({ name, text, at: Date.now() });
-  saveData(data);
-
-  const cmtsEl = document.getElementById('cmts-' + gid);
-  cmtsEl.innerHTML += `
-    <div class="comment-item">
-      <div class="comment-avatar">${name.slice(0,1)}</div>
-      <div class="comment-bubble">
-        <div class="comment-name">${name}</div>
-        <div class="comment-text">${text}</div>
-      </div>
-    </div>
-  `;
-  document.getElementById('cn-' + gid).value = '';
-  document.getElementById('ct-' + gid).value = '';
-}
-
-// ═══════════════════════════════════
-//  렌더링 — 회비 탭
-// ═══════════════════════════════════
-function renderFees() {
-  const data = loadData();
-  const list = document.getElementById('feesList');
-  list.innerHTML = '';
-
-  let totalCollected = 0, totalSpent = 0;
-  data.forEach(g => {
-    totalCollected += g.fees.reduce((s, f) => s + f.amount, 0);
-    totalSpent += g.expenses.reduce((s, e) => s + e.amount, 0);
-  });
-
-  const remaining = totalCollected - totalSpent;
-
-  list.innerHTML = `
-    <div class="fee-overview">
-      <div class="fee-overview-label">누적 회비 잔액</div>
-      <div class="fee-overview-amount">${remaining.toLocaleString()}원</div>
-      <div class="fee-overview-sub">총 납부 ${totalCollected.toLocaleString()}원 · 총 지출 ${totalSpent.toLocaleString()}원</div>
-    </div>
-  `;
-
-  if (!data.length) {
-    list.innerHTML += `<div class="empty-state"><span class="empty-state-emoji">💸</span><div class="empty-state-text">회비 내역이 없어요</div></div>`;
-    return;
-  }
-
-  data.forEach(g => {
-    const spent = g.expenses.reduce((s, e) => s + e.amount, 0);
-    const collected = g.fees.reduce((s, f) => s + f.amount, 0);
-    const bal = collected - spent;
-
-    const card = document.createElement('div');
-    card.className = 'fee-card';
-
-    const expRows = g.expenses.map(e =>
-      `<div class="fee-item"><span>${e.name}</span><span class="fee-item-amount">-${e.amount.toLocaleString()}원</span></div>`
-    ).join('');
-
-    const feeRows = g.fees.map(f =>
-      `<div class="fee-item"><span>${f.name} 납부</span><span class="fee-item-amount" style="color:var(--moss)">+${f.amount.toLocaleString()}원</span></div>`
-    ).join('');
-
-    card.innerHTML = `
-      <div class="fee-card-header">
-        <span class="fee-card-title">${g.emoji} ${g.title}</span>
-        <span class="fee-card-date">${formatDate(g.date)}</span>
-      </div>
-      <div class="fee-items">
-        ${feeRows}
-        ${expRows}
-      </div>
-      <div class="fee-balance-row">
-        <span>모임 잔액</span>
-        <span class="${bal >= 0 ? 'balance-positive' : 'balance-negative'}">${bal >= 0 ? '+' : ''}${bal.toLocaleString()}원</span>
-      </div>
-    `;
-
-    list.appendChild(card);
-  });
-}
-
-// ═══════════════════════════════════
-//  렌더링 — 갤러리 탭
-// ═══════════════════════════════════
-function renderGallery() {
-  const data = loadData();
-  const content = document.getElementById('galleryContent');
-  const empty = document.getElementById('galleryEmpty');
-  content.innerHTML = '';
-
-  const allPhotos = [];
-  data.forEach(g => {
-    if (g.driveLinks && g.driveLinks.length) {
-      allPhotos.push({ title: g.emoji + ' ' + g.title, date: g.date, links: g.driveLinks });
-    }
-  });
-
-  if (!allPhotos.length) { empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-
-  allPhotos.forEach(item => {
-    const section = document.createElement('div');
-    const titleEl = document.createElement('div');
-    titleEl.className = 'gallery-section-title';
-    titleEl.textContent = item.title;
-
-    const grid = document.createElement('div');
-    grid.className = 'gallery-grid';
-
-    item.links.forEach(url => {
-      const thumb = driveUrlToThumb(url);
-      const el = document.createElement('div');
-      el.className = 'gallery-item';
-      el.innerHTML = `<img src="${thumb}" loading="lazy" onerror="this.parentElement.style.display='none'">`;
-      el.onclick = () => openLightbox(thumb);
-      grid.appendChild(el);
-    });
-
-    section.appendChild(titleEl);
-    section.appendChild(grid);
-    content.appendChild(section);
-  });
-}
-
-// ═══════════════════════════════════
-//  모달
-// ═══════════════════════════════════
-function openWriteModal() {
-  document.getElementById('writeModal').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeWriteModal() {
-  document.getElementById('writeModal').classList.remove('open');
-  document.body.style.overflow = '';
-  // 폼 초기화
-  document.getElementById('f-title').value = '';
-  document.getElementById('f-story').value = '';
-  document.getElementById('f-places').value = '';
-  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
-  document.getElementById('expenseList').innerHTML = '';
-  document.getElementById('feeList').innerHTML = '';
-  document.getElementById('driveLinks').innerHTML = '';
-  addExpenseRow(); addFeeRow(); addDriveLink();
-  selectedEmoji = '🌿';
-  initEmojiPicker();
-}
-
-function openLightbox(src) {
-  document.getElementById('lbImg').src = src;
-  document.getElementById('lightbox').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-// ═══════════════════════════════════
-//  유틸
-// ═══════════════════════════════════
-function formatDate(d) {
-  if (!d) return '';
-  const dt = new Date(d);
-  return `${dt.getFullYear()}년 ${dt.getMonth()+1}월 ${dt.getDate()}일`;
-}
-
-// 모달 바깥 클릭 닫기
-document.getElementById('writeModal').addEventListener('click', function(e) {
-  if (e.target === this) closeWriteModal();
-});
 </script>
 </body>
 </html>
